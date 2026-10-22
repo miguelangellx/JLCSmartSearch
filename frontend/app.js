@@ -114,6 +114,8 @@ function setWorkspace(name) {
   byId("jlc-tab").classList.toggle("active", !manual);
   byId("manual-tab").setAttribute("aria-selected", String(manual));
   byId("jlc-tab").setAttribute("aria-selected", String(!manual));
+  byId("manual-tab").tabIndex = manual ? 0 : -1;
+  byId("jlc-tab").tabIndex = manual ? -1 : 0;
   byId("page-count").textContent =
     !manual && state.jlc.total != null
       ? formatNumber(Math.ceil(state.jlc.total / state.jlc.pageSize))
@@ -732,9 +734,8 @@ function updateJlcFacetSummary() {
     Number(byId("jlc-pcba-type").value !== "");
   const total = state.jlc.facets?.total;
   byId("jlc-facet-summary").textContent = state.jlc.facets
-    ? `${state.jlc.facets.paramRangeList.length} atributos disponibles · ${
-        total == null ? "total unavailable" : `${formatNumber(total)} estimated results`
-      } · ${activeFilters} ${activeFilters === 1 ? "JLC filter selected" : "JLC filters selected"}`
+    ? `${state.jlc.facets.paramRangeList.length} available attributes · ${total == null ? "total unavailable" : `${formatNumber(total)} estimated results`
+    } · ${activeFilters} ${activeFilters === 1 ? "JLC filter selected" : "JLC filters selected"}`
     : "";
   for (const button of byId("jlc-filter-controls").querySelectorAll(".jlc-facet-open")) {
     const key = button.dataset.facetKey;
@@ -1478,6 +1479,21 @@ async function loadJlcPage(page) {
 
 byId("manual-tab").addEventListener("click", () => setWorkspace("manual"));
 byId("jlc-tab").addEventListener("click", () => setWorkspace("jlc"));
+byId("jlc-tab").parentElement.addEventListener("keydown", (event) => {
+  const tabs = [byId("jlc-tab"), byId("manual-tab")];
+  const currentIndex = tabs.indexOf(document.activeElement);
+  if (currentIndex < 0) return;
+  const nextIndex =
+    event.key === "ArrowRight" ? (currentIndex + 1) % tabs.length
+      : event.key === "ArrowLeft" ? (currentIndex - 1 + tabs.length) % tabs.length
+        : event.key === "Home" ? 0
+          : event.key === "End" ? tabs.length - 1
+            : -1;
+  if (nextIndex < 0) return;
+  event.preventDefault();
+  tabs[nextIndex].focus();
+  tabs[nextIndex].click();
+});
 
 byId("jlc-category").addEventListener("change", (event) => {
   if (byId("jlc-facet-dialog").open) byId("jlc-facet-dialog").close();

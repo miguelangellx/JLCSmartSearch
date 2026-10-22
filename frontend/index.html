@@ -5,13 +5,48 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="color-scheme" content="light">
     <title>JLCSmartSearch — JLCPCB Component Search &amp; Compare</title>
+    <meta name="description" content="Search and filter JLCPCB components by specifications, compare parts side by side, and export clean component data as JSON.">
+    <meta name="robots" content="index, follow">
+    <meta name="application-name" content="JLCSmartSearch">
+    <meta name="theme-color" content="#f5f6f1">
+    <link rel="canonical" href="https://jlcsmartsearch.onrender.com/">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="JLCSmartSearch">
+    <meta property="og:title" content="JLCSmartSearch — JLCPCB Component Search &amp; Compare">
+    <meta property="og:description" content="Search and filter JLCPCB components by specifications, compare parts side by side, and export clean component data as JSON.">
+    <meta property="og:url" content="https://jlcsmartsearch.onrender.com/">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="JLCSmartSearch — JLCPCB Component Search &amp; Compare">
+    <meta name="twitter:description" content="Search and filter JLCPCB components by specifications, compare parts side by side, and export clean component data as JSON.">
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "JLCSmartSearch",
+        "url": "https://jlcsmartsearch.onrender.com/",
+        "description": "Search and filter JLCPCB components by specifications, compare parts side by side, and export clean component data as JSON.",
+        "applicationCategory": "DeveloperApplication",
+        "operatingSystem": "Any",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        },
+        "featureList": [
+          "Search the JLCPCB component catalog",
+          "Filter parts by component specifications and availability",
+          "Compare components side by side",
+          "Import and export component data as JSON"
+        ]
+      }
+    </script>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <link rel="stylesheet" href="/styles.css">
     <script type="module" src="/app.js"></script>
   </head>
   <body>
     <header class="topbar">
-      <a class="brand" href="/" aria-label="JLCSmartSearch home">
+      <a class="brand" href="/">
         <span class="brand-mark">J</span>
         <span>JLC<strong>SmartSearch</strong></span>
       </a>
@@ -31,12 +66,12 @@
         </p>
       </section>
 
-      <nav class="workspace-tabs" aria-label="Workspaces">
-        <button class="workspace-tab active" id="jlc-tab" type="button" aria-selected="true">Search JLCPCB</button>
-        <button class="workspace-tab" id="manual-tab" type="button" aria-selected="false">Manual catalog</button>
+      <nav class="workspace-tabs" role="tablist" aria-label="Workspaces">
+        <button class="workspace-tab active" id="jlc-tab" type="button" role="tab" aria-selected="true" aria-controls="jlc-workspace">Search JLCPCB</button>
+        <button class="workspace-tab" id="manual-tab" type="button" role="tab" aria-selected="false" aria-controls="manual-workspace" tabindex="-1">Manual catalog</button>
       </nav>
 
-      <section class="jlc-workspace" id="jlc-workspace" aria-label="Search JLCPCB components">
+      <section class="jlc-workspace" id="jlc-workspace" role="tabpanel" aria-labelledby="jlc-tab" tabindex="0">
         <div class="card-heading">
           <span class="step-index">JLC</span>
           <div>
@@ -114,7 +149,7 @@
         </details>
       </section>
 
-      <section id="manual-workspace" class="hidden">
+      <section id="manual-workspace" class="hidden" role="tabpanel" aria-labelledby="manual-tab" tabindex="0">
       <section class="ingest-grid" aria-label="Add components">
         <form class="ingest-card" id="upload-form">
           <div class="card-heading">
@@ -131,7 +166,7 @@
             <input id="json-file" type="file" accept=".json,application/json">
           </label>
           <label class="field-label json-paste-label" for="json-paste">Or paste a component array or JSON response</label>
-          <textarea id="json-paste" class="json-paste-input" rows="5" spellcheck="false" placeholder='[{"componentCode":"C123456", ...}] o {"data":[...]}'></textarea>
+          <textarea id="json-paste" class="json-paste-input" rows="5" spellcheck="false" placeholder='[{"componentCode":"C123456", ...}] or {"data":[...]}'></textarea>
           <button class="button button-primary" type="submit">Import components</button>
         </form>
 
@@ -187,7 +222,7 @@
           <label class="sort-select">
             <span>Sort</span>
             <select id="sort-select">
-              <option value="name">Nombre A–Z</option>
+              <option value="name">Name A–Z</option>
               <option value="price-asc">Price: lowest first</option>
               <option value="price-desc">Price: highest first</option>
               <option value="stock-desc">Stock: highest first</option>
@@ -207,17 +242,17 @@
           <table>
             <thead>
               <tr>
-                <th class="select-column"><span class="sr-only">Compare</span></th>
-                <th>Image</th>
-                <th>Component</th>
-                <th>Brand</th>
-                <th>Code</th>
-                <th>Package</th>
-                <th>Description</th>
-                <th>Unit price</th>
-                <th>Stock</th>
-                <th>Key attributes</th>
-                <th><span class="sr-only">Link</span></th>
+                <th class="select-column" scope="col"><span class="sr-only">Compare</span></th>
+                <th scope="col">Image</th>
+                <th scope="col">Component</th>
+                <th scope="col">Brand</th>
+                <th scope="col">Code</th>
+                <th scope="col">Package</th>
+                <th scope="col">Description</th>
+                <th scope="col">Unit price</th>
+                <th scope="col">Stock</th>
+                <th scope="col">Key attributes</th>
+                <th scope="col"><span class="sr-only">Link</span></th>
               </tr>
             </thead>
             <tbody id="component-rows">

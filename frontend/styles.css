@@ -518,3 +518,200 @@ tbody tr:hover { background: #fbfcfa; }
   .topbar-actions { gap: 8px; }
   .topbar-note { display: none; }
 }
+
+:root { --muted: #58665c; }
+
+.topbar-note,
+.eyebrow,
+.card-heading p,
+.drop-hint,
+.small-note,
+.field-label,
+.file-picker,
+.jlc-field,
+.jlc-library-options,
+.jlc-pagination label,
+.jlc-facet-summary,
+.jlc-facet-meta,
+.jlc-facet-dialog-count,
+.jlc-facet-dialog-help,
+.jlc-advanced,
+.stat span,
+kbd,
+.sort-select,
+.filter-count-badge,
+.filter-label,
+.filter-value-option,
+.filter-value-count,
+.range-unit,
+.filter-hint,
+.clear-filters,
+th,
+.part-model,
+.package-cell,
+.description-cell,
+.stock-cell,
+.attribute-chip,
+.empty-row span:last-child,
+.table-footnote,
+.page-ellipsis,
+.page-summary,
+.selected-filter-entry,
+.selected-filter-clear,
+.footer,
+.compare-table td:first-child,
+.compare-price-tier {
+  color: #58665c;
+}
+
+.eyebrow { color: #526b58; }
+.small-note,
+.drop-hint { font-size: 14px; line-height: 1.55; }
+.topbar-note,
+.card-heading p,
+.field-label,
+.file-picker,
+.jlc-field,
+.jlc-library-options,
+.stat span,
+.sort-select,
+.jlc-facet-summary,
+.jlc-advanced,
+.selected-filter-entry,
+.selected-filter-clear,
+.table-footnote,
+.footer { font-size: 13px; }
+.eyebrow { font-size: 12px; }
+.button { font-size: 13px; }
+.jlc-pagination label { font-size: 12px; }
+.jlc-library-options legend { font-size: 12px; }
+.jlc-facet-name { font-size: 13px; }
+.jlc-facet-meta,
+.jlc-facet-expand,
+.jlc-facet-dialog-count,
+.jlc-facet-dialog-help,
+.filter-count-badge,
+.filter-value-count,
+.range-unit,
+.filter-hint,
+kbd,
+.page-ellipsis,
+.page-summary,
+.compare-price-tier { font-size: 12px; }
+.selected-filter-chip { font-size: 12px; }
+.jlc-field select,
+.jlc-field input,
+.jlc-pagination input,
+.url-row input,
+.search-box input,
+.ingest-card textarea,
+.jlc-query-input { font-size: 14px; }
+.filter-label { font-size: 13px; }
+.filter-search { font-size: 13px; }
+.filter-value-option { font-size: 13px; }
+.range-inputs input { font-size: 13px; }
+.clear-filters { font-size: 13px; }
+th { font-size: 12px; }
+td { font-size: 13px; }
+.part-name { font-size: 13px; }
+.part-model,
+.code-pill,
+.price-cell,
+.stock-cell,
+.attribute-chip { font-size: 12px; }
+.empty-row strong { font-size: 14px; }
+.empty-row span:last-child { font-size: 13px; }
+.status-line { font-size: 13px; }
+.compare-product { font-size: 14px; }
+.footer { color: #58665c; }
+.table-footnote { color: #58665c; }
+.empty-row span:last-child { color: #58665c; }
+.stat span { color: #58665c; }
+kbd { color: #58665c; }
+.filter-count-badge { color: #58665c; }
+th { color: #536157; }
+.topbar-note { color: #58665c; }
+.card-heading p { color: #58665c; }
+.small-note,
+.drop-hint { color: #58665c; }
+.jlc-facet-meta,
+.jlc-facet-dialog-count,
+.jlc-facet-dialog-help { color: #58665c; }
+.filter-value-count,
+.range-unit,
+.filter-hint { color: #58665c; }
+.part-model,
+.package-cell,
+.description-cell,
+.stock-cell,
+.attribute-chip,
+.page-summary,
+.page-ellipsis,
+.compare-price-tier { color: #58665c; }
+.product-link { color: #315e3b; }
+.button-quiet { color: #58665c; }
+.selected-filter-caret,
+.selected-filter-remove-button,
+.selected-filter-clear { color: #58665c; }
+.search-box input::placeholder,
+.url-row input::placeholder,
+.ingest-card textarea::placeholder { color: #58665c; opacity: 1; }
+
+:focus-visible {
+  outline: 3px solid #1f5c36;
+  outline-offset: 2px;
+}
+
+:root[data-theme="dark"] { --muted: #b4c2b8; }
+:root[data-theme="dark"] .topbar-note,
+:root[data-theme="dark"] .eyebrow,
+:root[data-theme="dark"] .card-heading p,
+:root[data-theme="dark"] .drop-hint,
+:root[data-theme="dark"] .small-note,
+:root[data-theme="dark"] .field-label,
+:root[data-theme="dark"] .file-picker,
+:root[data-theme="dark"] .jlc-field,
+:root[data-theme="dark"] .jlc-library-options,
+:root[data-theme="dark"] .jlc-pagination label,
+:root[data-theme="dark"] .jlc-facet-summary,
+:root[data-theme="dark"] .jlc-facet-meta,
+:root[data-theme="dark"] .jlc-facet-dialog-count,
+:root[data-theme="dark"] .jlc-facet-dialog-help,
+:root[data-theme="dark"] .jlc-advanced,
+:root[data-theme="dark"] .stat span,
+:root[data-theme="dark"] kbd,
+:root[data-theme="dark"] .sort-select,
+:root[data-theme="dark"] .filter-count-badge,
+:root[data-theme="dark"] .filter-label,
+:root[data-theme="dark"] .filter-value-option,
+:root[data-theme="dark"] .filter-value-count,
+:root[data-theme="dark"] .range-unit,
+:root[data-theme="dark"] .filter-hint,
+:root[data-theme="dark"] .clear-filters,
+:root[data-theme="dark"] th,
+:root[data-theme="dark"] .part-model,
+:root[data-theme="dark"] .package-cell,
+:root[data-theme="dark"] .description-cell,
+:root[data-theme="dark"] .stock-cell,
+:root[data-theme="dark"] .attribute-chip,
+:root[data-theme="dark"] .empty-row span:last-child,
+:root[data-theme="dark"] .table-footnote,
+:root[data-theme="dark"] .page-ellipsis,
+:root[data-theme="dark"] .page-summary,
+:root[data-theme="dark"] .selected-filter-entry,
+:root[data-theme="dark"] .selected-filter-clear,
+:root[data-theme="dark"] .footer,
+:root[data-theme="dark"] .compare-table td:first-child,
+:root[data-theme="dark"] .compare-price-tier,
+:root[data-theme="dark"] .button-quiet,
+:root[data-theme="dark"] .selected-filter-caret,
+:root[data-theme="dark"] .selected-filter-remove-button {
+  color: #b4c2b8;
+}
+:root[data-theme="dark"] .product-link { color: #a1d5ad; }
+:root[data-theme="dark"] .search-box input::placeholder,
+:root[data-theme="dark"] .url-row input::placeholder,
+:root[data-theme="dark"] .ingest-card textarea::placeholder { color: #b4c2b8; opacity: 1; }
+:root[data-theme="dark"] :focus-visible {
+  outline-color: #a1d5ad;
+}
