@@ -5,7 +5,7 @@ const path = require("node:path");
 const HOST = process.env.HOST ?? (process.env.PORT ? "0.0.0.0" : "127.0.0.1");
 const PORT = Number(process.env.PORT ?? 3000);
 const MAX_BODY_SIZE = 30 * 1024 * 1024;
-const PUBLIC_DIR = __dirname;
+const DIST_DIR = path.join(__dirname, "dist");
 const DETAIL_URL =
   "https://jlcpcb.com/api/overseas-core-platform/shoppingCart/smtGood/getComponentDetail";
 const COMPONENT_SEARCH_URL =
@@ -15,10 +15,13 @@ const COMPONENT_FACET_URL =
 const COMPONENT_CATEGORY_PAYLOAD = { searchType: 5, pageSize: 0 };
 const MAX_JLC_PAGES = 100;
 const MAX_JLC_PAGE_SIZE = 100;
-const STATIC_FILES = new Map([
-  ["/", ["index.html", "text/html; charset=utf-8"]],
-  ["/app.js", ["app.js", "text/javascript; charset=utf-8"]],
-  ["/styles.css", ["styles.css", "text/css; charset=utf-8"]],
+const STATIC_CONTENT_TYPES = new Map([
+  [".css", "text/css; charset=utf-8"],
+  [".html", "text/html; charset=utf-8"],
+  [".ico", "image/x-icon"],
+  [".js", "text/javascript; charset=utf-8"],
+  [".json", "application/json; charset=utf-8"],
+  [".svg", "image/svg+xml"],
 ]);
 
 function firstValue(...values) {
@@ -50,11 +53,11 @@ function normalizeImageUrl(component) {
   const candidates = [
     ...(Array.isArray(component.imageList)
       ? component.imageList.flatMap((image) => [
-          image?.productBigImageAccessIdUrl,
-          image?.productImageAccessIdUrl,
-          image?.productBigImage,
-          image?.productImage,
-        ])
+        image?.productBigImageAccessIdUrl,
+        image?.productImageAccessIdUrl,
+        image?.productBigImage,
+        image?.productImage,
+      ])
       : []),
     component.componentImageUrl,
     component.productBigImageAccessIdUrl,
@@ -111,19 +114,19 @@ function normalizeProduct(component) {
 
   const attributes = Array.isArray(component.attributes)
     ? component.attributes
-        .filter((attribute) => attribute && typeof attribute === "object")
-        .map((attribute) => ({
-          attribute_name_en:
-            attribute.attribute_name_en ??
-            attribute.attributeNameEn ??
-            attribute.name ??
-            null,
-          attribute_value_name:
-            attribute.attribute_value_name ??
-            attribute.attributeValueName ??
-            attribute.value ??
-            null,
-        }))
+      .filter((attribute) => attribute && typeof attribute === "object")
+      .map((attribute) => ({
+        attribute_name_en:
+          attribute.attribute_name_en ??
+          attribute.attributeNameEn ??
+          attribute.name ??
+          null,
+        attribute_value_name:
+          attribute.attribute_value_name ??
+          attribute.attributeValueName ??
+          attribute.value ??
+          null,
+      }))
     : [];
 
   return {
@@ -180,155 +183,155 @@ function unwrapProducts(value) {
   return null;
 }
 
-  function findComponentList(value) {
-    if (!value || typeof value !== "object") return null;
-    if (Array.isArray(value)) {
-      if (value.some((item) => item && typeof item === "object" && item.componentCode != null)) {
-        return value;
-      }
-      for (const item of value) {
-        const found = findComponentList(item);
-        if (found) return found;
-      }
-      return null;
+function findComponentList(value) {
+  if (!value || typeof value !== "object") return null;
+  if (Array.isArray(value)) {
+    if (value.some((item) => item && typeof item === "object" && item.componentCode != null)) {
+      return value;
     }
-    for (const child of Object.values(value)) {
-      const found = findComponentList(child);
+    for (const item of value) {
+      const found = findComponentList(item);
       if (found) return found;
     }
     return null;
   }
+  for (const child of Object.values(value)) {
+    const found = findComponentList(child);
+    if (found) return found;
+  }
+  return null;
+}
 
-  function parseJlcQuery(value) {
-    if (typeof value === "string") {
-      try {
-        value = JSON.parse(value);
-      } catch {
-        const error = new Error("El cuerpo de consulta no es JSON válido.");
-        error.statusCode = 400;
-        throw error;
-      }
-    }
-    if (!value || typeof value !== "object" || Array.isArray(value)) {
-      const error = new Error("Pega el objeto JSON del cuerpo de la consulta JLCPCB.");
+function parseJlcQuery(value) {
+  if (typeof value === "string") {
+    try {
+      value = JSON.parse(value);
+    } catch {
+      const error = new Error("El cuerpo de consulta no es JSON válido.");
       error.statusCode = 400;
       throw error;
     }
-    return value;
   }
-
-  async function postJlcJson(url, payload) {
-    const response = await fetch(url, {
-      method: "POST",
-      headers: {
-        accept: "application/json, text/plain, */*",
-        "content-type": "application/json",
-        origin: "https://jlcpcb.com",
-      },
-      body: JSON.stringify(payload),
-      signal: AbortSignal.timeout(30_000),
-    });
-    if (!response.ok) {
-      throw new Error(`JLCPCB respondió HTTP ${response.status}.`);
-    }
-    const result = await response.json();
-    if (result.success === false || (result.code != null && Number(result.code) !== 200)) {
-      throw new Error(`Error de JLCPCB: ${result.message ?? result.code ?? "respuesta inválida"}`);
-    }
-    return result.data ?? result;
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    const error = new Error("Pega el objeto JSON del cuerpo de la consulta JLCPCB.");
+    error.statusCode = 400;
+    throw error;
   }
+  return value;
+}
 
-  function makeFacetPayload(query) {
-    const baseQueryDto = query.baseQueryDto ?? {
-      componentBrandList: query.componentBrandList ?? [],
-      componentSpecificationList: query.componentSpecificationList ?? [],
-      componentTypeIdList: query.secondSortId == null ? [] : [query.secondSortId],
-      orderLibraryTypeList: [],
-      packageTypeList: [],
-      filterType: null,
-      productTypeIdList: query.firstSortId == null ? [] : [query.firstSortId],
-      keyword: query.keyword ?? null,
-      queryShelveStatus: null,
-    };
-    return {
-      baseQueryDto,
-      catalogLevel: query.catalogLevel ?? 2,
-      nowCondition: query.nowCondition ?? "",
-      paramList: query.paramList ?? [],
-      queryString: query.queryString ?? null,
-    };
+async function postJlcJson(url, payload) {
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      accept: "application/json, text/plain, */*",
+      "content-type": "application/json",
+      origin: "https://jlcpcb.com",
+    },
+    body: JSON.stringify(payload),
+    signal: AbortSignal.timeout(30_000),
+  });
+  if (!response.ok) {
+    throw new Error(`JLCPCB respondió HTTP ${response.status}.`);
   }
+  const result = await response.json();
+  if (result.success === false || (result.code != null && Number(result.code) !== 200)) {
+    throw new Error(`Error de JLCPCB: ${result.message ?? result.code ?? "respuesta inválida"}`);
+  }
+  return result.data ?? result;
+}
 
-  async function getJlcFacets(query) {
-    const selections = [];
-    if (query.componentBrandList?.length) selections.push("brand");
-    if (query.componentSpecificationList?.length) selections.push("package");
+function makeFacetPayload(query) {
+  const baseQueryDto = query.baseQueryDto ?? {
+    componentBrandList: query.componentBrandList ?? [],
+    componentSpecificationList: query.componentSpecificationList ?? [],
+    componentTypeIdList: query.secondSortId == null ? [] : [query.secondSortId],
+    orderLibraryTypeList: [],
+    packageTypeList: [],
+    filterType: null,
+    productTypeIdList: query.firstSortId == null ? [] : [query.firstSortId],
+    keyword: query.keyword ?? null,
+    queryShelveStatus: null,
+  };
+  return {
+    baseQueryDto,
+    catalogLevel: query.catalogLevel ?? 2,
+    nowCondition: query.nowCondition ?? "",
+    paramList: query.paramList ?? [],
+    queryString: query.queryString ?? null,
+  };
+}
 
-    const attributeNames = new Set();
-    for (const item of query.componentAttributeList ?? []) {
-      if (item && typeof item === "object") {
-        for (const [name, values] of Object.entries(item)) {
-          if (Array.isArray(values) && values.length) attributeNames.add(name);
-        }
+async function getJlcFacets(query) {
+  const selections = [];
+  if (query.componentBrandList?.length) selections.push("brand");
+  if (query.componentSpecificationList?.length) selections.push("package");
+
+  const attributeNames = new Set();
+  for (const item of query.componentAttributeList ?? []) {
+    if (item && typeof item === "object") {
+      for (const [name, values] of Object.entries(item)) {
+        if (Array.isArray(values) && values.length) attributeNames.add(name);
       }
     }
-    for (const item of query.paramList ?? []) {
-      if (item?.paramName && Array.isArray(item.paramValueList) && item.paramValueList.length) {
-        attributeNames.add(item.paramName);
-      }
+  }
+  for (const item of query.paramList ?? []) {
+    if (item?.paramName && Array.isArray(item.paramValueList) && item.paramValueList.length) {
+      attributeNames.add(item.paramName);
     }
-    selections.push(...[...attributeNames].map((name) => `attribute:${name}`));
+  }
+  selections.push(...[...attributeNames].map((name) => `attribute:${name}`));
 
-    const responses = await Promise.all([
-      postJlcJson(COMPONENT_FACET_URL, makeFacetPayload(query)),
-      ...selections.map((selection) => {
-        const unfilteredQuery = structuredClone(query);
-        if (selection === "brand") {
-          unfilteredQuery.componentBrandList = [];
-          if (unfilteredQuery.baseQueryDto) unfilteredQuery.baseQueryDto.componentBrandList = [];
-        } else if (selection === "package") {
-          unfilteredQuery.componentSpecificationList = [];
-          if (unfilteredQuery.baseQueryDto) {
-            unfilteredQuery.baseQueryDto.componentSpecificationList = [];
-          }
-        } else {
-          const name = selection.slice("attribute:".length);
-          unfilteredQuery.componentAttributeList = (unfilteredQuery.componentAttributeList ?? [])
-            .filter((item) => !item || !Object.hasOwn(item, name));
-          unfilteredQuery.paramList = (unfilteredQuery.paramList ?? [])
-            .filter((item) => item?.paramName !== name);
-        }
-        return postJlcJson(COMPONENT_FACET_URL, makeFacetPayload(unfilteredQuery));
-      }),
-    ]);
-    const [facets, ...unfilteredFacets] = responses;
-    if (!Array.isArray(facets.paramRangeList)) {
-      throw new Error("La respuesta de JLCPCB no contiene las facetas de atributos.");
-    }
-
-    selections.forEach((selection, index) => {
-      const alternative = unfilteredFacets[index];
+  const responses = await Promise.all([
+    postJlcJson(COMPONENT_FACET_URL, makeFacetPayload(query)),
+    ...selections.map((selection) => {
+      const unfilteredQuery = structuredClone(query);
       if (selection === "brand") {
-        facets.componentBrandList = alternative.componentBrandList ?? facets.componentBrandList;
+        unfilteredQuery.componentBrandList = [];
+        if (unfilteredQuery.baseQueryDto) unfilteredQuery.baseQueryDto.componentBrandList = [];
       } else if (selection === "package") {
-        facets.componentSpecificationList =
-          alternative.componentSpecificationList ?? facets.componentSpecificationList;
+        unfilteredQuery.componentSpecificationList = [];
+        if (unfilteredQuery.baseQueryDto) {
+          unfilteredQuery.baseQueryDto.componentSpecificationList = [];
+        }
       } else {
         const name = selection.slice("attribute:".length);
-        const alternativeFacet = alternative.paramRangeList?.find((facet) => facet.key === name);
-        const currentFacet = facets.paramRangeList.find((facet) => facet.key === name);
-        if (alternativeFacet && currentFacet) currentFacet.subAggs = alternativeFacet.subAggs;
+        unfilteredQuery.componentAttributeList = (unfilteredQuery.componentAttributeList ?? [])
+          .filter((item) => !item || !Object.hasOwn(item, name));
+        unfilteredQuery.paramList = (unfilteredQuery.paramList ?? [])
+          .filter((item) => item?.paramName !== name);
       }
-    });
-    return facets;
+      return postJlcJson(COMPONENT_FACET_URL, makeFacetPayload(unfilteredQuery));
+    }),
+  ]);
+  const [facets, ...unfilteredFacets] = responses;
+  if (!Array.isArray(facets.paramRangeList)) {
+    throw new Error("La respuesta de JLCPCB no contiene las facetas de atributos.");
   }
 
-  function componentListFromPage(data) {
-    const pageInfo = data.componentPageInfo ?? data;
-    const list = pageInfo.list ?? pageInfo.componentList ?? findComponentList(pageInfo);
-    if (!Array.isArray(list)) return null;
-    return { list, total: Number(pageInfo.total ?? data.total) };
-  }
+  selections.forEach((selection, index) => {
+    const alternative = unfilteredFacets[index];
+    if (selection === "brand") {
+      facets.componentBrandList = alternative.componentBrandList ?? facets.componentBrandList;
+    } else if (selection === "package") {
+      facets.componentSpecificationList =
+        alternative.componentSpecificationList ?? facets.componentSpecificationList;
+    } else {
+      const name = selection.slice("attribute:".length);
+      const alternativeFacet = alternative.paramRangeList?.find((facet) => facet.key === name);
+      const currentFacet = facets.paramRangeList.find((facet) => facet.key === name);
+      if (alternativeFacet && currentFacet) currentFacet.subAggs = alternativeFacet.subAggs;
+    }
+  });
+  return facets;
+}
+
+function componentListFromPage(data) {
+  const pageInfo = data.componentPageInfo ?? data;
+  const list = pageInfo.list ?? pageInfo.componentList ?? findComponentList(pageInfo);
+  if (!Array.isArray(list)) return null;
+  return { list, total: Number(pageInfo.total ?? data.total) };
+}
 
 function sendJson(response, statusCode, value) {
   response.writeHead(statusCode, {
@@ -421,8 +424,7 @@ async function getProductFromUrl(input) {
     (result.code != null && Number(result.code) !== 200)
   ) {
     throw new Error(
-      `JLCPCB no devolvió el producto ${componentCode}: ${
-        result.message ?? result.code ?? "respuesta inválida"
+      `JLCPCB no devolvió el producto ${componentCode}: ${result.message ?? result.code ?? "respuesta inválida"
       }`
     );
   }
@@ -435,22 +437,49 @@ async function getProductFromUrl(input) {
   return normalizeProduct(product);
 }
 
-async function serveStatic(pathname, response) {
-  const file = STATIC_FILES.get(pathname);
-  if (!file) {
+async function serveStatic(pathname, request, response) {
+  let decodedPath;
+  try {
+    decodedPath = decodeURIComponent(pathname);
+  } catch {
     response.writeHead(404);
     response.end("Not found");
     return;
   }
 
-  const [filename, contentType] = file;
-  const contents = await fs.readFile(path.join(PUBLIC_DIR, filename));
+  const relativePath = decodedPath.replace(/^[/\\]+/, "") || "index.html";
+  const filePath = path.resolve(DIST_DIR, relativePath);
+  if (filePath !== DIST_DIR && !filePath.startsWith(`${DIST_DIR}${path.sep}`)) {
+    response.writeHead(404);
+    response.end("Not found");
+    return;
+  }
+
+  let contents;
+  try {
+    contents = await fs.readFile(filePath);
+  } catch (error) {
+    if (error.code === "ENOENT" || error.code === "EISDIR") {
+      response.writeHead(404);
+      response.end("Not found");
+      return;
+    }
+    throw error;
+  }
+  const contentType =
+    STATIC_CONTENT_TYPES.get(path.extname(filePath).toLowerCase()) ??
+    "application/octet-stream";
   response.writeHead(200, {
     "content-type": contentType,
-    "cache-control": "no-cache",
+    "content-length": contents.length,
+    "cache-control": decodedPath.startsWith("/assets/")
+      ? "public, max-age=31536000, immutable"
+      : decodedPath === "/favicon.svg"
+        ? "public, max-age=3600"
+        : "no-cache",
     "x-content-type-options": "nosniff",
   });
-  response.end(contents);
+  response.end(request.method === "HEAD" ? undefined : contents);
 }
 
 const server = http.createServer(async (request, response) => {
@@ -579,16 +608,28 @@ const server = http.createServer(async (request, response) => {
       return;
     }
 
-    if (request.method === "GET") {
-      await serveStatic(requestUrl.pathname, response);
+    if (request.method === "GET" || request.method === "HEAD") {
+      await serveStatic(requestUrl.pathname, request, response);
       return;
     }
 
     sendJson(response, 404, { error: "Ruta no encontrada." });
   } catch (error) {
-    console.error(error);
-    sendJson(response, error.statusCode ?? 500, {
-      error: error.message ?? "Error interno del servidor.",
+    console.error("Error procesando la solicitud:", error);
+
+    if (response.destroyed || response.writableEnded) {
+      return;
+    }
+
+    const statusCode = Number.isInteger(error.statusCode)
+      ? error.statusCode
+      : 500;
+
+    sendJson(response, statusCode, {
+      error:
+        statusCode >= 500
+          ? "Error interno del servidor."
+          : error.message ?? "Error en la solicitud.",
     });
   }
 });

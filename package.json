@@ -4,9 +4,19 @@
   "private": false,
   "description": "Search, filter, import, compare, and export JLCPCB/LCSC components with a self-hosted Node.js app",
   "scripts": {
-    "start": "node server.js"
+    "dev": "concurrently -k -n api,vite \"node server.js\" \"vite --config frontend/vite.config.mjs\"",
+    "dev:api": "node server.js",
+    "dev:vite": "vite --config frontend/vite.config.mjs",
+    "build": "vite build --config frontend/vite.config.mjs",
+    "start": "node server.js",
+    "preview": "concurrently -k -n api,preview \"node server.js\" \"vite preview --config frontend/vite.config.mjs\""
   },
+  "packageManager": "pnpm@12.15.0",
   "engines": {
-    "node": ">=18"
+    "node": "^20.19.0 || >=22.12.0"
+  },
+  "devDependencies": {
+    "concurrently": "10.0.6",
+    "vite": "8.3.4"
   }
 }
