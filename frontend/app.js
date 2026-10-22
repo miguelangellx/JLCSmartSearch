@@ -45,8 +45,8 @@ function setTheme(theme, persist = false) {
   document.documentElement.dataset.theme = isDark ? "dark" : "light";
   document.querySelector('meta[name="color-scheme"]').content = isDark ? "dark" : "light";
   const button = byId("theme-toggle");
-  button.textContent = isDark ? "Tema claro" : "Tema oscuro";
-  button.setAttribute("aria-label", `Cambiar a tema ${isDark ? "claro" : "oscuro"}`);
+  button.textContent = isDark ? "Light theme" : "Dark theme";
+  button.setAttribute("aria-label", `Switch to ${isDark ? "light" : "dark"} theme`);
   if (persist) localStorage.setItem("jlc-parts-theme", isDark ? "dark" : "light");
 }
 
@@ -123,7 +123,7 @@ function setWorkspace(name) {
 function formatNumber(value) {
   const number = Number(value);
   if (!Number.isFinite(number)) return "—";
-  return new Intl.NumberFormat("es-ES", { maximumFractionDigits: 4 }).format(number);
+  return new Intl.NumberFormat("en-US", { maximumFractionDigits: 4 }).format(number);
 }
 
 function formatMoney(value) {
@@ -322,7 +322,7 @@ function createProductImage(product) {
   const image = document.createElement("img");
   image.className = "product-image";
   image.src = product.imageUrl;
-  image.alt = `${product.componentName || product.componentCode} imagen`;
+  image.alt = `${product.componentName || product.componentCode} image`;
   image.loading = "lazy";
   image.referrerPolicy = "no-referrer";
   image.addEventListener("error", () => {
@@ -402,12 +402,12 @@ function makeProductRow(product) {
   const checkbox = document.createElement("input");
   checkbox.type = "checkbox";
   checkbox.className = "compare-checkbox";
-  checkbox.setAttribute("aria-label", `Seleccionar ${product.componentName} para comparar`);
+  checkbox.setAttribute("aria-label", `Select ${product.componentName} to compare`);
   checkbox.checked = state.selected.has(key);
   checkbox.addEventListener("change", () => {
     if (checkbox.checked && state.selected.size >= 4) {
       checkbox.checked = false;
-      setStatus("Puedes comparar hasta 4 componentes a la vez.", true);
+      setStatus("You can compare up to 4 components at a time.", true);
       return;
     }
     if (checkbox.checked) state.selected.add(key);
@@ -427,7 +427,7 @@ function makeProductRow(product) {
 
   const nameCell = document.createElement("td");
   nameCell.append(
-    element("span", "part-name", product.componentName || "Sin nombre"),
+    element("span", "part-name", product.componentName || "Unnamed"),
     element("span", "part-model", product.componentModelEn || "")
   );
   row.append(nameCell);
@@ -450,7 +450,7 @@ function makeProductRow(product) {
   for (const text of keyAttributes(product)) {
     chips.append(element("span", "attribute-chip", text));
   }
-  if (!chips.childElementCount) chips.append(element("span", "attribute-chip", "Sin atributos clave"));
+  if (!chips.childElementCount) chips.append(element("span", "attribute-chip", "No key attributes"));
   attributesCell.append(chips);
   row.append(attributesCell);
 
@@ -460,7 +460,7 @@ function makeProductRow(product) {
     link.href = product.productUrl;
     link.target = "_blank";
     link.rel = "noreferrer";
-    link.setAttribute("aria-label", `Abrir ${product.componentName}`);
+    link.setAttribute("aria-label", `Open ${product.componentName}`);
     linkCell.append(link);
   } else {
     linkCell.textContent = "—";
@@ -480,8 +480,8 @@ function render() {
     cell.colSpan = 11;
     cell.append(
       element("span", "empty-icon", sourceHasProducts() ? "⌕" : "⌁"),
-      element("strong", "", sourceHasProducts() ? "No hay resultados para esta búsqueda" : "Aún no hay componentes"),
-      element("span", "", sourceHasProducts() ? "Prueba otro nombre, código o atributo." : "Sube un JSON o añade un producto por URL para empezar.")
+      element("strong", "", sourceHasProducts() ? "No results for this search" : "No components yet"),
+      element("span", "", sourceHasProducts() ? "Try another name, code, or attribute." : "Import a JSON file or add a product by URL to get started.")
     );
     row.append(cell);
     rowsElement.append(row);
@@ -536,7 +536,7 @@ function renderCatalogPagination() {
 
   addButton("‹", Math.max(1, state.jlc.currentPage - 1), {
     disabled: state.jlc.currentPage <= 1,
-    ariaLabel: "Página anterior",
+    ariaLabel: "Previous page",
   });
   const first = Math.max(1, Math.min(
     state.jlc.currentPage - 2,
@@ -556,12 +556,12 @@ function renderCatalogPagination() {
   }
   addButton("›", Math.min(totalPages, state.jlc.currentPage + 1), {
     disabled: state.jlc.currentPage >= totalPages,
-    ariaLabel: "Página siguiente",
+    ariaLabel: "Next page",
   });
   container.append(element(
     "span",
     "page-summary",
-    `Página ${formatNumber(state.jlc.currentPage)} de ${formatNumber(totalPages)}`
+    `Page ${formatNumber(state.jlc.currentPage)} of ${formatNumber(totalPages)}`
   ));
 }
 
@@ -583,10 +583,10 @@ function updateActiveFilterCount() {
       (range) => range.min !== "" || range.max !== ""
     ).length +
     Object.values(state.filters.attributeValues).filter((values) => values.length > 0).length;
-  byId("active-filter-count").textContent = `${count} activos`;
+  byId("active-filter-count").textContent = `${count} active`;
   byId("open-filters").setAttribute(
     "aria-label",
-    `Abrir filtros del catálogo, ${count} activos`
+    `Open catalog filters, ${count} active`
   );
 }
 
@@ -600,8 +600,8 @@ function addRangeInputs(group, minimum, maximum, onChange, unit = "") {
   const inputs = element("div", "range-inputs");
   const reference = group.rangeReference;
   for (const [bound, value, placeholder] of [
-    ["min", minimum, "Mín. (ej. 1k)"],
-    ["max", maximum, "Máx. (ej. 1000)"],
+    ["min", minimum, "Min (e.g. 1k)"],
+    ["max", maximum, "Max (e.g. 1000)"],
   ]) {
     const input = document.createElement("input");
     input.type = "text";
@@ -609,8 +609,8 @@ function addRangeInputs(group, minimum, maximum, onChange, unit = "") {
     input.value = value;
     input.placeholder = placeholder;
     input.title = unit
-      ? `Puedes usar ${unit}, prefijos SI (m, u, n, k) o una unidad equivalente.`
-      : "Admite números y sufijos de unidad como k, m, u o n.";
+      ? `Use ${unit}, SI prefixes (m, u, n, k), or an equivalent unit.`
+      : "Accepts numbers and unit suffixes such as k, m, u, or n.";
     input.setAttribute("aria-label", `${group.querySelector(".filter-label").textContent} ${placeholder.toLowerCase()}`);
     input.addEventListener("input", () => onChange(bound, input.value));
     inputs.append(input);
@@ -618,8 +618,8 @@ function addRangeInputs(group, minimum, maximum, onChange, unit = "") {
   if (unit) {
     const unitLabel = element("span", "range-unit", unit);
     unitLabel.title = reference?.baseUnit
-      ? `Unidad base: ${reference.baseUnit}; también puedes escribir unidades equivalentes en el campo.`
-      : "Unidad detectada en los valores del catálogo.";
+      ? `Base unit: ${reference.baseUnit}; equivalent units can also be entered in this field.`
+      : "Unit detected from catalog values.";
     inputs.append(unitLabel);
   }
   group.append(inputs);
@@ -645,9 +645,9 @@ function addValueSelector(group, options, selected, onChange, rangeKey = null) {
   const search = document.createElement("input");
   search.type = "search";
   search.className = "filter-search";
-  search.placeholder = "Buscar valores…";
+  search.placeholder = "Search values…";
   search.autocomplete = "off";
-  search.setAttribute("aria-label", `Buscar en ${group.querySelector(".filter-label").textContent}`);
+  search.setAttribute("aria-label", `Search ${group.querySelector(".filter-label").textContent}`);
   const list = element("div", "filter-value-list");
   for (const option of options) {
     const label = element("label", "filter-value-option");
@@ -655,10 +655,10 @@ function addValueSelector(group, options, selected, onChange, rangeKey = null) {
     checkbox.type = "checkbox";
     checkbox.value = option.value;
     checkbox.checked = selected.includes(option.value);
-    checkbox.title = "Selecciona varias opciones; Shift + clic marca un rango";
-    const text = element("span", "filter-value-label", option.label || "Sin valor");
+    checkbox.title = "Select multiple options; Shift-click selects a range";
+    const text = element("span", "filter-value-label", option.label || "No value");
     const count = element("span", "filter-value-count", formatNumber(option.count));
-    count.title = `${formatNumber(option.count)} componentes`;
+    count.title = `${formatNumber(option.count)} components`;
     label.append(checkbox, text, count);
     let shiftClick = false;
     label.addEventListener("pointerdown", (event) => {
@@ -733,8 +733,8 @@ function updateJlcFacetSummary() {
   const total = state.jlc.facets?.total;
   byId("jlc-facet-summary").textContent = state.jlc.facets
     ? `${state.jlc.facets.paramRangeList.length} atributos disponibles · ${
-        total == null ? "total no indicado" : `${formatNumber(total)} resultados estimados`
-      } · ${activeFilters} ${activeFilters === 1 ? "filtro JLC seleccionado" : "filtros JLC seleccionados"}`
+        total == null ? "total unavailable" : `${formatNumber(total)} estimated results`
+      } · ${activeFilters} ${activeFilters === 1 ? "JLC filter selected" : "JLC filters selected"}`
     : "";
   for (const button of byId("jlc-filter-controls").querySelectorAll(".jlc-facet-open")) {
     const key = button.dataset.facetKey;
@@ -743,13 +743,13 @@ function updateJlcFacetSummary() {
     const rangeActive = range && (range.min !== "" || range.max !== "");
     const optionCount = button.dataset.optionCount;
     button.querySelector(".jlc-facet-meta").textContent =
-      `${selectedCount ? `${formatNumber(selectedCount)} seleccionados` : `${formatNumber(optionCount)} opciones`}${rangeActive ? " · rango activo" : ""}`;
+      `${selectedCount ? `${formatNumber(selectedCount)} selected` : `${formatNumber(optionCount)} options`}${rangeActive ? " · range active" : ""}`;
   }
   if (byId("jlc-facet-dialog").open && state.jlc.activeFacetKey != null) {
     const optionCount = byId("jlc-facet-dialog-content").querySelectorAll(".filter-value-option").length;
     const selectedCount = state.jlc.selections[state.jlc.activeFacetKey]?.length ?? 0;
     byId("jlc-facet-dialog-count").textContent =
-      `${formatNumber(optionCount)} opciones · ${formatNumber(selectedCount)} seleccionadas`;
+      `${formatNumber(optionCount)} options · ${formatNumber(selectedCount)} selected`;
   }
   renderJlcSelectedFilters();
 }
@@ -758,8 +758,8 @@ function renderJlcSelectedFilters() {
   const container = byId("jlc-selected-filters");
   container.replaceChildren();
   const facetNames = new Map([
-    ["__brands", "Marca JLCPCB"],
-    ["__packages", "Encapsulado JLCPCB"],
+    ["__brands", "JLCPCB brand"],
+    ["__packages", "JLCPCB package"],
     ...(state.jlc.facets?.paramRangeList ?? []).map((facet) => [facet.key, facet.name ?? facet.key]),
   ]);
   const selectedKeys = Object.keys(state.jlc.selections);
@@ -791,8 +791,8 @@ function renderJlcSelectedFilters() {
     }));
     if (rangeActive) {
       const bounds = [
-        range.min === "" ? "" : `desde ${range.min}`,
-        range.max === "" ? "" : `hasta ${range.max}`,
+        range.min === "" ? "" : `from ${range.min}`,
+        range.max === "" ? "" : `to ${range.max}`,
       ].filter(Boolean).join(" ");
       entries.unshift({
         text: `Rango: ${bounds}`,
@@ -838,7 +838,7 @@ function renderJlcSelectedFilters() {
   if (availability.value) {
     appendJlcFilterChip(
       container,
-      `Disponibilidad: ${availability.selectedOptions[0].textContent}`,
+      `Availability: ${availability.selectedOptions[0].textContent}`,
       () => {
         availability.value = "";
         updateJlcFacetSummary();
@@ -863,7 +863,7 @@ function renderJlcSelectedFilters() {
 function appendJlcFilterChip(container, text, remove) {
   const chip = element("button", "selected-filter-chip", "");
   chip.type = "button";
-  chip.setAttribute("aria-label", `Quitar filtro ${text}`);
+  chip.setAttribute("aria-label", `Remove filter ${text}`);
   chip.append(
     element("span", "", text),
     element("span", "selected-filter-remove", "×")
@@ -877,7 +877,7 @@ function appendJlcFilterGroup(container, name, entries, clear) {
   const trigger = element("button", "selected-filter-chip", "");
   trigger.type = "button";
   trigger.setAttribute("aria-expanded", "false");
-  trigger.setAttribute("aria-label", `${name}: ${entries.length} valores seleccionados`);
+  trigger.setAttribute("aria-label", `${name}: ${entries.length} selected values`);
   trigger.append(
     element("span", "", `${name} (${entries.filter((entry) => !entry.range).length})`),
     element("span", "selected-filter-caret", "▾")
@@ -897,12 +897,12 @@ function appendJlcFilterGroup(container, name, entries, clear) {
     row.append(element("span", "", entry.text));
     const remove = element("button", "selected-filter-remove-button", "×");
     remove.type = "button";
-    remove.setAttribute("aria-label", `Quitar ${entry.text} de ${name}`);
+    remove.setAttribute("aria-label", `Remove ${entry.text} from ${name}`);
     remove.addEventListener("click", entry.remove);
     row.append(remove);
     menu.append(row);
   }
-  const clearButton = element("button", "selected-filter-clear", "Quitar todo");
+  const clearButton = element("button", "selected-filter-clear", "Remove all");
   clearButton.type = "button";
   clearButton.addEventListener("click", clear);
   menu.append(clearButton);
@@ -922,14 +922,14 @@ function appendJlcFacetGroup(container, label, options, key, numeric = null) {
   const button = element("button", "jlc-facet-open", "");
   button.type = "button";
   button.setAttribute("aria-haspopup", "dialog");
-  button.setAttribute("aria-label", `Expandir filtro ${label}`);
+  button.setAttribute("aria-label", `Expand filter ${label}`);
   button.dataset.facetKey = key;
   button.dataset.optionCount = String(options.length);
   button.append(
     element("span", "jlc-facet-name", label),
     element("span", "jlc-facet-meta",
-      `${count ? `${formatNumber(count)} seleccionados` : `${formatNumber(options.length)} opciones`}${rangeActive ? " · rango activo" : ""}`),
-    element("span", "jlc-facet-expand", "Expandir ↗")
+      `${count ? `${formatNumber(count)} selected` : `${formatNumber(options.length)} options`}${rangeActive ? " · range active" : ""}`),
+    element("span", "jlc-facet-expand", "Expand ↗")
   );
   button.addEventListener("click", () => {
     state.jlc.activeFacetKey = key;
@@ -1010,10 +1010,10 @@ function renderJlcFacetDialog() {
   let label;
   let options;
   if (key === "__brands") {
-    label = "Marca JLCPCB";
+    label = "JLCPCB brand";
     options = normalizeFacetOptions(facets.componentBrandList);
   } else if (key === "__packages") {
-    label = "Encapsulado JLCPCB";
+    label = "JLCPCB package";
     options = normalizeFacetOptions(facets.componentSpecificationList);
   } else {
     const facet = facets.paramRangeList.find((item) => item.key === key);
@@ -1027,7 +1027,7 @@ function renderJlcFacetDialog() {
 
   byId("jlc-facet-dialog-title").textContent = label;
   byId("jlc-facet-dialog-count").textContent =
-    `${formatNumber(options.length)} opciones · ${formatNumber(state.jlc.selections[key]?.length ?? 0)} seleccionadas`;
+    `${formatNumber(options.length)} options · ${formatNumber(state.jlc.selections[key]?.length ?? 0)} selected`;
   const numeric = key.startsWith("__") ? null : numericAttribute(options.map((option) => option.value));
   host.replaceChildren(createJlcFacetControl(label, options, key, numeric));
   const search = host.querySelector(".filter-search");
@@ -1050,10 +1050,10 @@ function renderJlcFacetControls() {
   }
 
   const brands = normalizeFacetOptions(facets.componentBrandList);
-  appendJlcFacetGroup(container, "Marca JLCPCB", brands, "__brands");
+  appendJlcFacetGroup(container, "JLCPCB brand", brands, "__brands");
 
   const packages = normalizeFacetOptions(facets.componentSpecificationList);
-  appendJlcFacetGroup(container, "Encapsulado JLCPCB", packages, "__packages");
+  appendJlcFacetGroup(container, "JLCPCB package", packages, "__packages");
 
   for (const facet of facets.paramRangeList) {
     const options = jlcFacetItems(facet);
@@ -1072,14 +1072,14 @@ function buildJlcQuery() {
     try {
       query = JSON.parse(advancedPayload);
     } catch {
-      throw new Error("El cuerpo de búsqueda avanzado debe ser un JSON válido.");
+      throw new Error("The advanced search payload must be valid JSON.");
     }
     if (!query || typeof query !== "object" || Array.isArray(query)) {
-      throw new Error("El cuerpo de búsqueda avanzado debe ser un objeto JSON.");
+      throw new Error("The advanced search payload must be a JSON object.");
     }
   } else {
     const category = state.jlc.categories.find((item) => String(item.id) === state.jlc.categoryId);
-    if (!category) throw new Error("Selecciona primero una categoría de JLCPCB.");
+    if (!category) throw new Error("Select a JLCPCB category first.");
     const subcategory = category.children.find(
       (item) => String(item.id) === state.jlc.subcategoryId
     );
@@ -1207,7 +1207,7 @@ function renderFilterControls() {
   container.replaceChildren();
 
   const brands = getFacetOptions(state.products.map((product) => product.componentBrandEn));
-  const brandGroup = createFilterGroup("Marca");
+  const brandGroup = createFilterGroup("Brand");
   addValueSelector(brandGroup, brands, state.filters.brand, (values) => {
     state.filters.brand = values;
     updateActiveFilterCount();
@@ -1217,7 +1217,7 @@ function renderFilterControls() {
 
   for (const [label, minimumKey, maximumKey, valuesKey, values] of [
     [
-      "Precio inicial (USD)",
+      "Unit price (USD)",
       "priceMin",
       "priceMax",
       "priceValues",
@@ -1287,7 +1287,7 @@ function renderFilterControls() {
       group.append(element(
         "span",
         "filter-hint",
-        "Usa unidades y prefijos (1kΩ = 1000Ω; 100nF = 0.1uF). Sin unidad se interpreta en la unidad base."
+        "Use units and prefixes (1kΩ = 1000Ω; 100nF = 0.1uF). Values without a unit use the base unit."
       ));
     }
     addValueSelector(group, values, state.filters.attributeValues[name] ?? [], (selected) => {
@@ -1302,7 +1302,7 @@ function renderFilterControls() {
 
 async function readApiResponse(response) {
   const result = await response.json();
-  if (!response.ok) throw new Error(result.error || `Error HTTP ${response.status}`);
+  if (!response.ok) throw new Error(result.error || `HTTP error ${response.status}`);
   return result;
 }
 
@@ -1320,7 +1320,7 @@ async function loadJlcCategories() {
   try {
     const result = await readApiResponse(await fetch("/api/jlc/categories"));
     state.jlc.categories = result.categories;
-    categorySelect.replaceChildren(new Option("Selecciona una categoría", ""));
+    categorySelect.replaceChildren(new Option("Select a category", ""));
     for (const category of result.categories) {
       categorySelect.add(new Option(
         `${category.name} (${formatNumber(category.count)})`,
@@ -1328,9 +1328,9 @@ async function loadJlcCategories() {
       ));
     }
     categorySelect.disabled = false;
-    setStatus(`${result.categories.length} categorías cargadas desde JLCPCB.`);
+    setStatus(`${result.categories.length} categories loaded from JLCPCB.`);
   } catch (error) {
-    categorySelect.replaceChildren(new Option("No se pudieron cargar las categorías", ""));
+    categorySelect.replaceChildren(new Option("Could not load categories", ""));
     setStatus(error.message, true);
   }
 }
@@ -1339,7 +1339,7 @@ async function loadJlcFacets() {
   const requestId = ++state.jlc.facetRequestId;
   state.jlc.facetsLoading = true;
   updateJlcSearchControls();
-  setStatus("Actualizando filtros disponibles en JLCPCB…");
+  setStatus("Refreshing available JLCPCB filters…");
   try {
     const result = await readApiResponse(
       await fetch("/api/jlc/facets", {
@@ -1351,7 +1351,7 @@ async function loadJlcFacets() {
     if (requestId !== state.jlc.facetRequestId) return;
     state.jlc.facets = result;
     renderJlcFacetControls();
-    setStatus(`Filtros actualizados: ${result.paramRangeList.length} atributos disponibles.`);
+    setStatus(`Filters updated: ${result.paramRangeList.length} attributes available.`);
   } catch (error) {
     if (requestId === state.jlc.facetRequestId) setStatus(error.message, true);
   } finally {
@@ -1382,7 +1382,7 @@ async function runJlcSearch(scrollToCatalog = false) {
   state.jlc.facetsLoading = false;
   state.jlc.searching = true;
   updateJlcSearchControls();
-  setStatus("Actualizando filtros y consultando JLCPCB…");
+  setStatus("Updating filters and querying JLCPCB…");
   try {
     const query = buildJlcQuery();
     const facets = await readApiResponse(
@@ -1418,7 +1418,7 @@ async function runJlcSearch(scrollToCatalog = false) {
     const added = mergeProducts(result.products);
     setWorkspace("jlc");
     setStatus(
-      `JLCPCB devolvió ${result.products.length} componentes de ${result.pagesFetched} páginas; ${added} nuevos añadidos al catálogo${result.total == null ? "." : ` (${formatNumber(result.total)} resultados totales).`}`
+      `JLCPCB returned ${result.products.length} components from ${result.pagesFetched} pages; ${added} new components added to the catalog${result.total == null ? "." : ` (${formatNumber(result.total)} total results).`}`
     );
     if (scrollToCatalog) byId("catalog-title").scrollIntoView({ behavior: "smooth", block: "start" });
   } catch (error) {
@@ -1439,7 +1439,7 @@ async function loadJlcPage(page) {
   state.jlc.searching = true;
   updateJlcSearchControls();
   renderCatalogPagination();
-  setStatus(`Cargando página ${formatNumber(page)} de JLCPCB…`);
+  setStatus(`Loading JLCPCB page ${formatNumber(page)}…`);
   try {
     const query = buildJlcQuery();
     const result = await readApiResponse(
@@ -1463,7 +1463,7 @@ async function loadJlcPage(page) {
     byId("jlc-end-page").value = String(page);
     const added = mergeProducts(state.jlc.pageProducts);
     setStatus(
-      `Página ${formatNumber(page)} cargada: ${state.jlc.pageProducts.length} componentes; ${added} nuevos añadidos al catálogo.`
+      `Page ${formatNumber(page)} loaded: ${state.jlc.pageProducts.length} components; ${added} new components added to the catalog.`
     );
   } catch (error) {
     if (requestId === state.jlc.facetRequestId) setStatus(error.message, true);
@@ -1496,7 +1496,7 @@ byId("jlc-category").addEventListener("change", (event) => {
   );
   const subcategorySelect = byId("jlc-subcategory");
   subcategorySelect.replaceChildren(new Option(
-    category?.children.length ? "Todas las subcategorías" : "Esta categoría no tiene subcategorías",
+    category?.children.length ? "All subcategories" : "This category has no subcategories",
     ""
   ));
   for (const child of category?.children ?? []) {
@@ -1562,13 +1562,13 @@ byId("upload-form").addEventListener("submit", async (event) => {
   const file = byId("json-file").files?.[0];
   const pastedJson = byId("json-paste").value.trim();
   if (!file && !pastedJson) {
-    setStatus("Selecciona un archivo JSON o pega su contenido.", true);
+    setStatus("Choose a JSON file or paste its contents.", true);
     return;
   }
 
   const button = event.submitter;
   button.disabled = true;
-  setStatus(file && !pastedJson ? `Leyendo ${file.name}…` : "Procesando JSON pegado…");
+  setStatus(file && !pastedJson ? `Reading ${file.name}…` : "Processing pasted JSON…");
   try {
     const jsonText = pastedJson || await file.text();
     const result = await readApiResponse(
@@ -1579,10 +1579,10 @@ byId("upload-form").addEventListener("submit", async (event) => {
       })
     );
     const added = mergeProducts(result.products);
-    setStatus(`Importados ${result.products.length} componentes; ${added} nuevos añadidos al catálogo.`);
+    setStatus(`Imported ${result.products.length} components; ${added} new components added to the catalog.`);
     byId("json-paste").value = "";
     byId("json-file").value = "";
-    byId("file-label").textContent = "Selecciona o arrastra un archivo";
+    byId("file-label").textContent = "Choose or drop a file";
   } catch (error) {
     setStatus(error.message, true);
   } finally {
@@ -1592,7 +1592,7 @@ byId("upload-form").addEventListener("submit", async (event) => {
 
 byId("json-file").addEventListener("change", (event) => {
   const file = event.target.files?.[0];
-  byId("file-label").textContent = file ? file.name : "Selecciona o arrastra un archivo";
+  byId("file-label").textContent = file ? file.name : "Choose or drop a file";
 });
 
 const dropzone = byId("dropzone");
@@ -1612,7 +1612,7 @@ dropzone.addEventListener("drop", (event) => {
   const file = event.dataTransfer.files?.[0];
   if (!file) return;
   if (!file.name.toLowerCase().endsWith(".json")) {
-    setStatus("Selecciona un archivo con extensión .json.", true);
+    setStatus("Choose a file with the .json extension.", true);
     return;
   }
   const transfer = new DataTransfer();
@@ -1624,13 +1624,13 @@ dropzone.addEventListener("drop", (event) => {
 byId("url-file").addEventListener("change", async (event) => {
   const file = event.target.files?.[0];
   if (!file) return;
-  byId("url-file-label").textContent = `Cargando ${file.name}…`;
+  byId("url-file-label").textContent = `Loading ${file.name}…`;
   try {
     byId("product-urls").value = await file.text();
-    byId("url-file-label").textContent = `${file.name} cargado. Puedes revisar o editar la lista antes de extraer.`;
+    byId("url-file-label").textContent = `${file.name} loaded. You can review or edit the list before fetching.`;
   } catch (error) {
-    byId("url-file-label").textContent = "No se pudo leer el archivo.";
-    setStatus(`No se pudo leer ${file.name}: ${error.message}`, true);
+    byId("url-file-label").textContent = "Could not read the file.";
+    setStatus(`Could not read ${file.name}: ${error.message}`, true);
   }
 });
 
@@ -1647,7 +1647,7 @@ byId("url-form").addEventListener("submit", async (event) => {
   const inputs = extractProductInputs(byId("product-urls").value);
   const button = event.submitter;
   if (!inputs.length) {
-    setStatus("Pega al menos una URL o un código de componente, o carga un archivo.", true);
+    setStatus("Paste at least one URL or component code, or load a file.", true);
     return;
   }
 
@@ -1656,7 +1656,7 @@ byId("url-form").addEventListener("submit", async (event) => {
   const errors = [];
   try {
     for (const [index, input] of inputs.entries()) {
-      setStatus(`Consultando componente ${index + 1} de ${inputs.length}…`);
+      setStatus(`Fetching component ${index + 1} of ${inputs.length}…`);
       try {
         const result = await readApiResponse(
           await fetch("/api/product-url", {
@@ -1671,9 +1671,9 @@ byId("url-form").addEventListener("submit", async (event) => {
       }
     }
     const added = mergeProducts(products);
-    const summary = `${products.length} consultados correctamente; ${added} nuevos añadidos.`;
+    const summary = `${products.length} fetched successfully; ${added} new components added.`;
     const errorSummary = errors.length
-      ? ` Fallaron ${errors.length}: ${errors.slice(0, 3).join(" · ")}${errors.length > 3 ? "…" : ""}`
+      ? ` Failed: ${errors.length}. ${errors.slice(0, 3).join(" · ")}${errors.length > 3 ? "…" : ""}`
       : "";
     setStatus(summary + errorSummary, errors.length > 0 && products.length === 0);
   } finally {
@@ -1729,7 +1729,7 @@ byId("download-button").addEventListener("click", () => {
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.download = "componentes-extraidos.json";
+  link.download = "components-export.json";
   link.click();
   URL.revokeObjectURL(url);
 });
@@ -1753,7 +1753,7 @@ byId("clear-button").addEventListener("click", () => {
   };
   renderFilterControls();
   if (byId("compare-section").open) byId("compare-section").close();
-  setStatus("Catálogo vaciado.");
+  setStatus("Catalog cleared.");
   render();
 });
 
@@ -1764,20 +1764,20 @@ function renderComparison() {
   const attributeNames = [...new Set(products.flatMap((product) => [...getAttributeMap(product).keys()]))]
     .sort((a, b) => a.localeCompare(b, undefined, { sensitivity: "base" }));
   const fields = [
-    ["Marca", (product) => product.componentBrandEn],
-    ["Código", (product) => product.componentCode],
-    ["Modelo", (product) => product.componentModelEn],
-    ["Encapsulado", (product) => product.componentSpecificationEn],
+    ["Brand", (product) => product.componentBrandEn],
+    ["Code", (product) => product.componentCode],
+    ["Model", (product) => product.componentModelEn],
+    ["Package", (product) => product.componentSpecificationEn],
     ["Stock", (product) => product.stockCount == null ? null : formatNumber(product.stockCount)],
-    ["Precio inicial", (product) => formatMoney(product.initialPrice)],
-    ["Origen", (product) => product.componentSource],
-    ["Descripción", (product) => product.describe],
+    ["Unit price", (product) => formatMoney(product.initialPrice)],
+    ["Source", (product) => product.componentSource],
+    ["Description", (product) => product.describe],
     ["URL", (product) => product.productUrl],
   ];
   const table = element("table", "compare-table");
   const thead = document.createElement("thead");
   const header = document.createElement("tr");
-  header.append(element("th", "", "Campo"));
+  header.append(element("th", "", "Field"));
   for (const product of products) {
     header.append(element("th", "compare-product", product.componentName || product.componentCode));
   }
@@ -1815,8 +1815,8 @@ function renderComparison() {
   }
 
   for (const priceField of [
-    ["Precio por cantidad", "componentPrices"],
-    ["Precio de compra", "buyComponentPrices"],
+    ["Price by quantity", "componentPrices"],
+    ["Purchase price", "buyComponentPrices"],
   ]) {
     const [label, key] = priceField;
     const row = document.createElement("tr");
@@ -1829,7 +1829,7 @@ function renderComparison() {
           ? "+"
           : `–${formatNumber(tier.endNumber)}`;
         list.append(element("span", "compare-price-tier",
-          `${formatNumber(tier.startNumber)}${end} u. · ${formatMoney(tier.productPrice)}`));
+          `${formatNumber(tier.startNumber)}${end} units · ${formatMoney(tier.productPrice)}`));
       }
       if (!list.childElementCount) list.append(element("span", "compare-price-tier", "—"));
       cell.append(list);
@@ -1858,4 +1858,5 @@ byId("jlc-facet-dialog").addEventListener("click", (event) => {
   if (event.target === byId("jlc-facet-dialog")) byId("jlc-facet-dialog").close();
 });
 
+setWorkspace("jlc");
 render();

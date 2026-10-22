@@ -109,7 +109,7 @@ function makeProductUrl(component) {
 
 function normalizeProduct(component) {
   if (!component || typeof component !== "object" || Array.isArray(component)) {
-    throw new Error("Cada producto debe ser un objeto JSON.");
+    throw new Error("Each product must be a JSON object.");
   }
 
   const attributes = Array.isArray(component.attributes)
@@ -136,7 +136,7 @@ function normalizeProduct(component) {
       component.erpComponentName,
       component.componentModelEn,
       component.componentCode,
-      "Componente sin nombre"
+      "Unnamed component"
     ),
     stockCount: component.stockCount ?? component.overseasStockCount ?? null,
     componentPrices: normalizePrices(
@@ -207,13 +207,13 @@ function parseJlcQuery(value) {
     try {
       value = JSON.parse(value);
     } catch {
-      const error = new Error("El cuerpo de consulta no es JSON válido.");
+      const error = new Error("The request body is not valid JSON.");
       error.statusCode = 400;
       throw error;
     }
   }
   if (!value || typeof value !== "object" || Array.isArray(value)) {
-    const error = new Error("Pega el objeto JSON del cuerpo de la consulta JLCPCB.");
+    const error = new Error("Paste the JSON object from the JLCPCB request body.");
     error.statusCode = 400;
     throw error;
   }
@@ -232,11 +232,11 @@ async function postJlcJson(url, payload) {
     signal: AbortSignal.timeout(30_000),
   });
   if (!response.ok) {
-    throw new Error(`JLCPCB respondió HTTP ${response.status}.`);
+    throw new Error(`JLCPCB returned HTTP ${response.status}.`);
   }
   const result = await response.json();
   if (result.success === false || (result.code != null && Number(result.code) !== 200)) {
-    throw new Error(`Error de JLCPCB: ${result.message ?? result.code ?? "respuesta inválida"}`);
+    throw new Error(`JLCPCB error: ${result.message ?? result.code ?? "invalid response"}`);
   }
   return result.data ?? result;
 }
@@ -306,7 +306,7 @@ async function getJlcFacets(query) {
   ]);
   const [facets, ...unfilteredFacets] = responses;
   if (!Array.isArray(facets.paramRangeList)) {
-    throw new Error("La respuesta de JLCPCB no contiene las facetas de atributos.");
+    throw new Error("The JLCPCB response does not contain attribute facets.");
   }
 
   selections.forEach((selection, index) => {
@@ -349,7 +349,7 @@ async function readJsonBody(request) {
   for await (const chunk of request) {
     size += chunk.length;
     if (size > MAX_BODY_SIZE) {
-      const error = new Error("La solicitud supera el límite de 30 MB.");
+      const error = new Error("The request exceeds the 30 MB limit.");
       error.statusCode = 413;
       throw error;
     }
@@ -359,7 +359,7 @@ async function readJsonBody(request) {
   try {
     return JSON.parse(Buffer.concat(chunks).toString("utf8"));
   } catch {
-    const error = new Error("El cuerpo recibido no es JSON válido.");
+    const error = new Error("The request body is not valid JSON.");
     error.statusCode = 400;
     throw error;
   }
@@ -373,7 +373,7 @@ function extractComponentCode(input) {
   try {
     url = new URL(raw);
   } catch {
-    const error = new Error("Pega una URL válida de JLCPCB/LCSC o un código como C123456.");
+    const error = new Error("Enter a valid JLCPCB/LCSC URL or a code such as C123456.");
     error.statusCode = 400;
     throw error;
   }
@@ -384,7 +384,7 @@ function extractComponentCode(input) {
     url.hostname === "lcsc.com" ||
     url.hostname.endsWith(".lcsc.com");
   if (url.protocol !== "https:" || !hostAllowed) {
-    const error = new Error("Solo se aceptan URLs HTTPS de jlcpcb.com o lcsc.com.");
+    const error = new Error("Only HTTPS URLs from jlcpcb.com or lcsc.com are accepted.");
     error.statusCode = 400;
     throw error;
   }
@@ -399,7 +399,7 @@ function extractComponentCode(input) {
     if (match) return match[0].toUpperCase();
   }
 
-  const error = new Error("No pude encontrar el código C... del componente en esa URL.");
+  const error = new Error("Could not find the component's C... code in that URL.");
   error.statusCode = 400;
   throw error;
 }
@@ -415,7 +415,7 @@ async function getProductFromUrl(input) {
   });
 
   if (!upstream.ok) {
-    throw new Error(`JLCPCB respondió HTTP ${upstream.status} para ${componentCode}.`);
+    throw new Error(`JLCPCB returned HTTP ${upstream.status} for ${componentCode}.`);
   }
 
   const result = await upstream.json();
@@ -424,14 +424,14 @@ async function getProductFromUrl(input) {
     (result.code != null && Number(result.code) !== 200)
   ) {
     throw new Error(
-      `JLCPCB no devolvió el producto ${componentCode}: ${result.message ?? result.code ?? "respuesta inválida"
+      `JLCPCB did not return product ${componentCode}: ${result.message ?? result.code ?? "invalid response"
       }`
     );
   }
 
   const product = result.data;
   if (!product || typeof product !== "object" || !product.componentCode) {
-    throw new Error(`No se encontró el componente ${componentCode}.`);
+    throw new Error(`Component ${componentCode} was not found.`);
   }
 
   return normalizeProduct(product);
@@ -494,7 +494,7 @@ const server = http.createServer(async (request, response) => {
     if (request.method === "POST" && requestUrl.pathname === "/api/import") {
       const body = await readJsonBody(request);
       if (typeof body.jsonText !== "string") {
-        sendJson(response, 400, { error: "Falta el contenido JSON." });
+        sendJson(response, 400, { error: "JSON content is required." });
         return;
       }
 
@@ -502,14 +502,14 @@ const server = http.createServer(async (request, response) => {
       try {
         parsed = JSON.parse(body.jsonText);
       } catch {
-        sendJson(response, 400, { error: "El contenido no es JSON válido." });
+        sendJson(response, 400, { error: "The content is not valid JSON." });
         return;
       }
 
       const products = unwrapProducts(parsed);
       if (!products) {
         sendJson(response, 400, {
-          error: "No encontré productos. El JSON debe ser un array o una respuesta con data/list.",
+          error: "No products found. The JSON must be an array or a response containing data/list.",
         });
         return;
       }
@@ -521,7 +521,7 @@ const server = http.createServer(async (request, response) => {
     if (request.method === "POST" && requestUrl.pathname === "/api/product-url") {
       const body = await readJsonBody(request);
       if (typeof body.url !== "string" || body.url.trim() === "") {
-        sendJson(response, 400, { error: "Introduce una URL de producto." });
+        sendJson(response, 400, { error: "Enter a product URL." });
         return;
       }
 
@@ -546,7 +546,7 @@ const server = http.createServer(async (request, response) => {
     if (request.method === "GET" && requestUrl.pathname === "/api/jlc/categories") {
       const data = await postJlcJson(COMPONENT_SEARCH_URL, COMPONENT_CATEGORY_PAYLOAD);
       if (!Array.isArray(data.sortAndCountVoList)) {
-        throw new Error("La respuesta de JLCPCB no contiene la lista de categorías.");
+        throw new Error("The JLCPCB response does not contain the category list.");
       }
       const normalizeCategory = (category) => ({
         id: category.componentSortKeyId,
@@ -575,12 +575,12 @@ const server = http.createServer(async (request, response) => {
         endPage < startPage ||
         endPage - startPage + 1 > MAX_JLC_PAGES
       ) {
-        const error = new Error(`Indica un rango válido de páginas (máximo ${MAX_JLC_PAGES} páginas por consulta).`);
+        const error = new Error(`Enter a valid page range (up to ${MAX_JLC_PAGES} pages per request).`);
         error.statusCode = 400;
         throw error;
       }
       if (!Number.isInteger(pageSize) || pageSize < 1 || pageSize > MAX_JLC_PAGE_SIZE) {
-        const error = new Error(`El tamaño de página debe estar entre 1 y ${MAX_JLC_PAGE_SIZE}.`);
+        const error = new Error(`Page size must be between 1 and ${MAX_JLC_PAGE_SIZE}.`);
         error.statusCode = 400;
         throw error;
       }
@@ -596,7 +596,7 @@ const server = http.createServer(async (request, response) => {
           pageSize,
         });
         const page = componentListFromPage(data);
-        if (!page) throw new Error(`No encontré la lista de componentes en la página ${currentPage}.`);
+        if (!page) throw new Error(`Could not find the component list on page ${currentPage}.`);
         if (Number.isFinite(page.total)) total = page.total;
         const normalized = page.list.map(normalizeProduct);
         pages.push({ page: currentPage, products: normalized });
@@ -613,9 +613,9 @@ const server = http.createServer(async (request, response) => {
       return;
     }
 
-    sendJson(response, 404, { error: "Ruta no encontrada." });
+    sendJson(response, 404, { error: "Route not found." });
   } catch (error) {
-    console.error("Error procesando la solicitud:", error);
+    console.error("Error processing request:", error);
 
     if (response.destroyed || response.writableEnded) {
       return;
@@ -628,8 +628,8 @@ const server = http.createServer(async (request, response) => {
     sendJson(response, statusCode, {
       error:
         statusCode >= 500
-          ? "Error interno del servidor."
-          : error.message ?? "Error en la solicitud.",
+          ? "Internal server error."
+          : error.message ?? "Request error.",
     });
   }
 });
