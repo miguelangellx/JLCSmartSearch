@@ -1,0 +1,12 @@
+{
+  "name": "jlc-smart-search",
+  "version": "1.0.0",
+  "private": false,
+  "description": "Search, filter, import, compare, and export JLCPCB/LCSC components with a self-hosted Node.js app",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

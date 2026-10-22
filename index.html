@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light">
+    <title>JLCSmartSearch — JLCPCB Component Search &amp; Compare</title>
+    <link rel="stylesheet" href="/styles.css">
+    <script src="/app.js" defer></script>
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="/" aria-label="JLCSmartSearch, inicio">
+        <span class="brand-mark">J</span>
+        <span>JLC<strong>SmartSearch</strong></span>
+      </a>
+      <div class="topbar-actions">
+        <span class="topbar-note">Catálogo local · comparación rápida</span>
+        <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Cambiar a tema oscuro">Tema oscuro</button>
+      </div>
+    </header>
+
+    <main class="page-shell">
+      <section class="intro">
+        <p class="eyebrow">HERRAMIENTA DE SELECCIÓN</p>
+        <h1>Encuentra el componente adecuado.</h1>
+        <p class="intro-copy">
+          Importa resultados de JLCPCB, busca por especificaciones y compara opciones.
+          Exporta un resumen limpio para compartirlo con una IA.
+        </p>
+      </section>
+
+      <nav class="workspace-tabs" aria-label="Modo de trabajo">
+        <button class="workspace-tab active" id="manual-tab" type="button" aria-selected="true">Catálogo manual</button>
+        <button class="workspace-tab" id="jlc-tab" type="button" aria-selected="false">Buscar en JLCPCB</button>
+      </nav>
+
+      <section id="manual-workspace">
+      <section class="ingest-grid" aria-label="Añadir componentes">
+        <form class="ingest-card" id="upload-form">
+          <div class="card-heading">
+            <span class="step-index">01</span>
+            <div>
+              <h2>Subir JSON</h2>
+              <p>Admite arrays de componentes y respuestas con <code>data</code>.</p>
+            </div>
+          </div>
+          <label class="dropzone" id="dropzone" for="json-file">
+            <span class="upload-icon" aria-hidden="true">↑</span>
+            <span class="drop-title" id="file-label">Selecciona o arrastra un archivo</span>
+            <span class="drop-hint">JSON · hasta 30 MB</span>
+            <input id="json-file" type="file" accept=".json,application/json">
+          </label>
+          <label class="field-label json-paste-label" for="json-paste">O pega el array de componentes o la respuesta JSON</label>
+          <textarea id="json-paste" class="json-paste-input" rows="5" spellcheck="false" placeholder='[{"componentCode":"C123456", ...}] o {"data":[...]}'></textarea>
+          <button class="button button-primary" type="submit">Extraer componentes</button>
+        </form>
+
+        <form class="ingest-card" id="url-form">
+          <div class="card-heading">
+            <span class="step-index">02</span>
+            <div>
+              <h2>Añadir por URL o código</h2>
+              <p>Pega una o varias entradas, una por línea, o carga un archivo de texto.</p>
+            </div>
+          </div>
+          <label class="field-label" for="product-urls">URLs o códigos de producto</label>
+          <textarea id="product-urls" rows="3" placeholder="https://jlcpcb.com/partdetail/…&#10;C123456"></textarea>
+          <div class="url-batch-actions">
+            <label class="file-picker">
+              <span>Elegir archivo TXT, CSV o JSON</span>
+              <input id="url-file" type="file" accept=".txt,.csv,.json,text/plain,text/csv,application/json">
+            </label>
+            <button class="button button-dark" type="submit">Extraer componentes</button>
+          </div>
+          <p class="small-note" id="url-file-label">También acepta códigos C…; las consultas se hacen una por una y se omiten errores sin detener el lote.</p>
+        </form>
+      </section>
+      </section>
+
+      <section class="jlc-workspace hidden" id="jlc-workspace" aria-label="Buscar componentes en JLCPCB">
+        <div class="card-heading">
+          <span class="step-index">JLC</span>
+          <div>
+            <h2>Buscar componentes en JLCPCB</h2>
+          </div>
+        </div>
+        <div class="jlc-category-fields">
+          <label class="jlc-field">
+            <span>Categoría</span>
+            <select id="jlc-category" disabled><option value="">Cargando categorías…</option></select>
+          </label>
+          <label class="jlc-field">
+            <span>Subcategoría</span>
+            <select id="jlc-subcategory" disabled><option value="">Elige una categoría primero</option></select>
+          </label>
+          <label class="jlc-field jlc-keyword-field">
+            <span>Buscar por nombre o código</span>
+            <input id="jlc-keyword" type="search" placeholder="Ej. BQ24133 o battery charger">
+          </label>
+        </div>
+        <div class="jlc-option-row">
+          <button class="button button-outline" id="load-jlc-facets" type="button" disabled>Actualizar filtros</button>
+        </div>
+        <div class="jlc-facet-summary" id="jlc-facet-summary"></div>
+        <div class="filter-grid jlc-filter-grid" id="jlc-filter-controls"></div>
+        <div class="jlc-selected-filters" id="jlc-selected-filters" aria-label="Filtros seleccionados"></div>
+        <p class="small-note">Al cambiar categoría, subcategoría o filtros, se actualizan las facetas y los resultados automáticamente. En atributos numéricos, el mínimo y máximo marcan automáticamente los valores dentro del rango; si un valor agrupa varias medidas, todas deben quedar dentro de los límites.</p>
+        <div class="jlc-pagination">
+          <label>Desde página <input id="jlc-start-page" type="number" min="1" value="1"></label>
+          <label>Hasta página <input id="jlc-end-page" type="number" min="1" value="1"></label>
+          <label>Resultados por página <input id="jlc-page-size" type="number" min="1" max="100" value="25"></label>
+        </div>
+        <div class="jlc-search-options">
+          <fieldset class="jlc-library-options">
+            <legend>Tipo de componente</legend>
+            <label><input id="jlc-library-basic" type="checkbox" value="base"> Basic</label>
+            <label><input id="jlc-library-extended" type="checkbox" value="extended"> Extended</label>
+          </fieldset>
+          <label class="jlc-field">
+            <span>Ordenar por</span>
+            <select id="jlc-sort">
+              <option value="STOCK_SORT:DESC">Stock: mayor a menor</option>
+              <option value="STOCK_SORT:ASC">Stock: menor a mayor</option>
+              <option value="PRICE_SORT:ASC">Precio: menor a mayor</option>
+              <option value="PRICE_SORT:DESC">Precio: mayor a menor</option>
+            </select>
+          </label>
+          <label class="jlc-field">
+            <span>Disponibilidad</span>
+            <select id="jlc-availability">
+              <option value="">Todos</option>
+              <option value="stock">Solo en stock</option>
+              <option value="presale">Incluir preventa</option>
+            </select>
+          </label>
+          <label class="jlc-field">
+            <span>Tipo de montaje</span>
+            <select id="jlc-pcba-type">
+              <option value="">Todos</option>
+              <option value="1">PCBA Type 1</option>
+              <option value="2">PCBA Type 2</option>
+            </select>
+          </label>
+        </div>
+        <p class="small-note">Máximo 100 páginas por búsqueda. La tabla muestra la página activa; usa la paginación debajo de la tabla para cargar otra página.</p>
+        <div class="jlc-search-actions">
+          <button class="button button-outline" id="clear-jlc-filters" type="button">Limpiar filtros</button>
+          <button class="button button-dark jlc-run-button" id="run-jlc-search" type="button" disabled>Buscar y añadir resultados</button>
+        </div>
+        <details class="jlc-advanced">
+          <summary>Opciones avanzadas: pegar un Request Payload</summary>
+          <p class="small-note">Opcional. Si lo rellenas, se usará ese cuerpo como base en lugar de la categoría seleccionada.</p>
+          <label class="field-label" for="jlc-query">Cuerpo JSON de la búsqueda</label>
+          <textarea class="jlc-query-input" id="jlc-query" rows="6" spellcheck="false" placeholder='{"currentPage":1,"pageSize":25,"firstSortId":9,"secondSortId":3098,...}'></textarea>
+        </details>
+      </section>
+
+      <div class="status-line" id="status" role="status" aria-live="polite"></div>
+
+      <section class="catalog-section" aria-labelledby="catalog-title">
+        <div class="catalog-heading">
+          <div>
+            <p class="eyebrow">TU CATÁLOGO</p>
+            <h2 id="catalog-title">Componentes</h2>
+          </div>
+          <div class="catalog-actions">
+            <button class="button button-outline" id="download-button" type="button" disabled>Descargar JSON</button>
+            <button class="button button-quiet" id="clear-button" type="button" disabled>Vaciar</button>
+          </div>
+        </div>
+
+        <div class="stats-row">
+          <div class="stat"><strong id="total-count">0</strong><span>componentes</span></div>
+          <div class="stat"><strong id="visible-count">0</strong><span>visibles</span></div>
+          <div class="stat"><strong id="compare-count">0 / 4</strong><span>seleccionados para comparar</span></div>
+          <div class="stat"><strong id="page-count">—</strong><span>páginas totales JLCPCB</span></div>
+        </div>
+
+        <div class="toolbar">
+          <label class="search-box">
+            <span aria-hidden="true">⌕</span>
+            <input id="search-input" type="search" placeholder="Buscar nombre, marca, código o atributo…" autocomplete="off">
+            <kbd>Ctrl K</kbd>
+          </label>
+          <label class="sort-select">
+            <span>Ordenar</span>
+            <select id="sort-select">
+              <option value="name">Nombre A–Z</option>
+              <option value="price-asc">Precio: menor primero</option>
+              <option value="price-desc">Precio: mayor primero</option>
+              <option value="stock-desc">Stock: mayor primero</option>
+              <option value="stock-asc">Stock: menor primero</option>
+            </select>
+          </label>
+          <button class="button button-compare" id="compare-button" type="button" disabled>Comparar selección</button>
+        </div>
+
+        <div class="catalog-filter-actions">
+          <button class="button button-outline" id="open-filters" type="button">
+            Filtros <span class="filter-count-badge" id="active-filter-count">0 activos</span>
+          </button>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th class="select-column"><span class="sr-only">Comparar</span></th>
+                <th>Imagen</th>
+                <th>Componente</th>
+                <th>Marca</th>
+                <th>Código</th>
+                <th>Encapsulado</th>
+                <th>Descripción</th>
+                <th>Precio inicial</th>
+                <th>Stock</th>
+                <th>Atributos clave</th>
+                <th><span class="sr-only">Enlace</span></th>
+              </tr>
+            </thead>
+            <tbody id="component-rows">
+              <tr class="empty-row">
+                <td colspan="11">
+                  <span class="empty-icon">⌁</span>
+                  <strong>Aún no hay componentes</strong>
+                  <span>Sube un JSON o añade un producto por URL para empezar.</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <nav class="catalog-pagination hidden" id="catalog-pagination" aria-label="Paginación de resultados JLCPCB"></nav>
+        <p class="table-footnote" id="table-footnote">Los datos se procesan en esta sesión local y no se guardan en el servidor.</p>
+      </section>
+
+      <dialog class="compare-modal" id="compare-section" aria-labelledby="compare-title">
+        <section class="compare-section">
+          <div class="catalog-heading">
+            <div>
+              <p class="eyebrow">VISTA LADO A LADO</p>
+              <h2 id="compare-title">Comparación</h2>
+            </div>
+            <button class="button button-quiet" id="close-compare" type="button">Cerrar comparación</button>
+          </div>
+          <div class="compare-wrap" id="compare-content"></div>
+        </section>
+      </dialog>
+
+      <dialog class="compare-modal filters-modal" id="filters-dialog" aria-labelledby="filters-title">
+        <section class="compare-section filters-panel">
+          <div class="catalog-heading">
+            <div>
+              <p class="eyebrow">FILTRAR CATÁLOGO</p>
+              <h2 id="filters-title">Filtros</h2>
+            </div>
+            <button class="button button-quiet" id="close-filters" type="button">Cerrar filtros</button>
+          </div>
+          <div class="filter-grid" id="filter-controls"></div>
+          <button class="button button-quiet clear-filters" id="clear-filters" type="button">Limpiar filtros</button>
+        </section>
+      </dialog>
+
+      <dialog class="compare-modal jlc-facet-modal" id="jlc-facet-dialog" aria-labelledby="jlc-facet-dialog-title">
+        <section class="compare-section jlc-facet-panel">
+          <div class="catalog-heading">
+            <div>
+              <p class="eyebrow">FILTRO JLCPCB</p>
+              <h2 id="jlc-facet-dialog-title">Filtro</h2>
+              <p class="jlc-facet-dialog-count" id="jlc-facet-dialog-count"></p>
+              <p class="jlc-facet-dialog-help">Selecciona varias opciones o usa Shift + clic para marcar un rango.</p>
+            </div>
+            <button class="button button-quiet" id="close-jlc-facet-dialog" type="button">Cerrar filtro</button>
+          </div>
+          <div id="jlc-facet-dialog-content"></div>
+        </section>
+      </dialog>
+
+      <footer class="footer">
+        <span>JLCSmartSearch</span>
+        <span>Verifica siempre los valores eléctricos con la hoja de datos del fabricante.</span>
+      </footer>
+    </main>
+  </body>
+</html>
